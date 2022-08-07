@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-test-deployment
+  labels:
+    app: k8s-test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: k8s_test
+  template:
+    metadata:
+      labels:
+        project: k8s_test
+    spec:
+      containers:
+        - name: django
+          image: k8s_test_django
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: django-config-map
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: django-config-map
+                  key: SECRET_KEY
+            - name: DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: django-config-map
+                  key: DEBUG
+            - name: ALLOWED_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: django-config-map
+                  key: ALLOWED_HOSTS
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  labels:
+    env: dev
+    owner: admin
+spec:
+  selector:
+    project: k8s_test
+  ports:
+    - name: dajngo
+      protocol: TCP
+      port: 8080
+      targetPort: 80
+  type: LoadBalancer

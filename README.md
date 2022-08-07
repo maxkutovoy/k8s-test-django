@@ -2,7 +2,7 @@
 
 Докеризированный сайт на Django для экспериментов с Kubernetes.
 
-Внутри конейнера Django запускается с помощью Nginx Unit, не путать с Nginx. Сервер Nginx Unit выполняет сразу две функции: как веб-сервер он раздаёт файлы статики и медиа, а в роли сервера-приложений он запускает Python и Django. Таким образом Nginx Unit заменяет собой связку из двух сервисов Nginx и Gunicorn/uWSGI. [Подробнее про Nginx Unit](https://unit.nginx.org/).
+Внутри контейнера Django запускается с помощью Nginx Unit, не путать с Nginx. Сервер Nginx Unit выполняет сразу две функции: как веб-сервер он раздаёт файлы статики и медиа, а в роли сервера-приложений он запускает Python и Django. Таким образом Nginx Unit заменяет собой связку из двух сервисов Nginx и Gunicorn/uWSGI. [Подробнее про Nginx Unit](https://unit.nginx.org/).
 
 ## Как запустить dev-версию
 
@@ -32,3 +32,31 @@ $ docker-compose run web ./manage.py createsuperuser
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+## Запуск сайта в kubernetes (на примере minikube)
+
+1. Minikube должен быть запущен.
+
+2. Для запуска сайта в kubernetes кластере необходимо [задать переменные окружения](#переменные-окружения) в ConfigMap файле `django-cm.yml`. И загрузить их в кластер командой:
+
+    ```sh
+    kubectl apply -f django-cm.yml
+    ```
+
+3. Создать Docker образ командой:
+
+    ```sh
+    docker -f ./backend_main_django/Dockerfile -t k8s_test_dajngo .
+    ```
+
+4. Загрузить созданный образ в кластер. Например, команда для minikube:
+
+    ```sh
+    minikube image load k8s_test_dajngo
+    ```
+
+5. Запустить deployment файл:
+
+    ```sh
+    kubectl apply -f django-deployment.yml
+    ```
