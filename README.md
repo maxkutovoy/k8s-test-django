@@ -35,28 +35,45 @@ $ docker-compose run web ./manage.py createsuperuser
 
 ## Запуск сайта в kubernetes (на примере minikube)
 
-1. Minikube должен быть запущен.
+Minikube и kubectl должны быть установлены и запущены.
 
-2. Для запуска сайта в kubernetes кластере необходимо [задать переменные окружения](#переменные-окружения) в ConfigMap файле `django-cm.yml`. И загрузить их в кластер командой:
+Для запуска сайта в kubernetes кластере необходимо [задать переменные окружения](#переменные-окружения) в файле `django-cm.yml` в разделе `data`. И загрузить их в кластер командой:
 
-    ```sh
-    kubectl apply -f django-cm.yml
-    ```
+```sh
+kubectl apply -f django-cm.yml
+```
+Внимание! Чтобы данные вашего проекта не попали в репозиторий отключите отслеживание изменений в файле `django-cm.yml` командой:
 
-3. Создать Docker образ командой:
+```sh
+git rm --cached django-cm.yml
+```
 
-    ```sh
-    docker -f ./backend_main_django/Dockerfile -t k8s_test_dajngo .
-    ```
+Создать локальный Docker образ проекта командой:
 
-4. Загрузить созданный образ в кластер. Например, команда для minikube:
+```sh
+docker -f ./backend_main_django/Dockerfile -t k8s_test_dajngo .
+```
 
-    ```sh
-    minikube image load k8s_test_dajngo
-    ```
+Загрузить созданный образ в кластер. Команда для minikube:
 
-5. Запустить deployment файл:
+```sh
+minikube image load k8s_test_dajngo
+```
 
-    ```sh
-    kubectl apply -f django-deployment.yml
-    ```
+Запустить deployment файл:
+
+```sh
+kubectl apply -f django-deployment.yml
+```
+
+Запустить сервис ingress:
+
+```sh
+kubectl apply -f ingress.yml
+```
+
+Чтобы сайт был доступен по адресу [http://star-burger.test](http://star-burger.test) нужно настроить локальный файл `/etc/hosts`. Для этого можно использовать команду:
+
+```sh
+echo "$(minikube ip) star-burger.test" | sudo tee -a /etc/hosts
+```
