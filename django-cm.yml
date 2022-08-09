@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config-map
+  labels:
+    app: k8s-test-app
+data:
+  DATABASE_URL: postgres://test:test@host:5432/test
+  SECRET_KEY: replase-secret-key
+  DEBUG: "True"
+  ALLOWED_HOSTS: "*"
